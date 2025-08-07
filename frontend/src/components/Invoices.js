@@ -48,10 +48,11 @@ import {
 } from '../utils/excelUtils';
 
 const Invoices = () => {
-  const [invoices] = useState(mockInvoices);
+  const [invoices, setInvoices] = useState(mockInvoices);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const getStatusBadge = (status) => {
     const statusConfig = {
