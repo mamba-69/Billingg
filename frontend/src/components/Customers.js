@@ -461,55 +461,72 @@ const Customers = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCustomers.map((customer) => (
-                <TableRow key={customer.id} className="hover:bg-gray-50">
-                  <TableCell>
-                    <div>
-                      <div className="font-medium text-gray-900">{customer.name}</div>
-                      <div className="flex items-center text-sm text-gray-500 mt-1">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span className="truncate max-w-xs">{customer.address}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center text-sm">
-                        <Mail className="h-3 w-3 mr-1 text-gray-400" />
-                        <span>{customer.email}</span>
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <Phone className="h-3 w-3 mr-1 text-gray-400" />
-                        <span>{customer.phone}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{customer.gstin || 'N/A'}</TableCell>
-                  <TableCell className={`font-semibold ${customer.outstanding > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {formatCurrency(customer.outstanding)}
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    {formatCurrency(customer.totalBusiness)}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-600">
-                    {formatDate(customer.lastInvoice)}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(customer.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteCustomer(customer)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan="8" className="text-center py-8">
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="ml-2">Loading customers...</span>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredCustomers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan="8" className="text-center py-8 text-gray-500">
+                    No customers found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredCustomers.map((customer) => (
+                  <TableRow key={customer.id} className="hover:bg-gray-50">
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-gray-900">{customer.name}</div>
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          <span className="truncate max-w-xs">{customer.address}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center text-sm">
+                          <Mail className="h-3 w-3 mr-1 text-gray-400" />
+                          <span>{customer.email}</span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <Phone className="h-3 w-3 mr-1 text-gray-400" />
+                          <span>{customer.phone}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{customer.gstin || 'N/A'}</TableCell>
+                    <TableCell className={`font-semibold ${customer.outstanding > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatCurrency(customer.outstanding)}
+                    </TableCell>
+                    <TableCell className="font-semibold">
+                      {formatCurrency(customer.totalBusiness)}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {formatDate(customer.lastInvoice)}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(customer.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteCustomer(customer)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
