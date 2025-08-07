@@ -206,51 +206,82 @@ export const processInvoiceExcel = (file) => {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+          raw: false, // Keep original string values
+          defval: '' // Default empty cells to empty string
+        });
+        
+        console.log('Raw Invoice Excel Data:', jsonData); // Debug log
         
         // Group by invoice number
         const invoicesMap = {};
         const productsMap = {}; // Track products to add to inventory
         
         jsonData.forEach((row, index) => {
+          // More flexible header matching for invoices
+          const invoiceNumber = row['Invoice Number'] || row['invoice number'] || row['Invoice'] || row['invoice'] || '';
+          const customerName = row['Customer Name'] || row['customer name'] || row['Customer'] || row['customer'] || '';
+          const productName = row['Product Name'] || row['product name'] || row['Product'] || row['product'] || '';
+          const customerEmail = row['Customer Email'] || row['customer email'] || row['Email'] || row['email'] || '';
+          const customerPhone = row['Customer Phone'] || row['customer phone'] || row['Phone'] || row['phone'] || '';
+          const customerAddress = row['Customer Address'] || row['customer address'] || row['Address'] || row['address'] || '';
+          const customerGSTIN = row['Customer GSTIN'] || row['customer gstin'] || row['GSTIN'] || row['gstin'] || '';
+          const invoiceDate = row['Invoice Date'] || row['invoice date'] || row['Date'] || row['date'] || '';
+          const dueDate = row['Due Date'] || row['due date'] || row['DueDate'] || row['duedate'] || '';
+          const sku = row['SKU'] || row['sku'] || row['Code'] || row['code'] || '';
+          const category = row['Category'] || row['category'] || 'General';
+          const quantity = row['Quantity'] || row['quantity'] || row['Qty'] || row['qty'] || '1';
+          const unitPrice = row['Unit Price'] || row['unit price'] || row['Price'] || row['price'] || '0';
+          const unit = row['Unit'] || row['unit'] || 'piece';
+          const hsn = row['HSN Code'] || row['hsn code'] || row['HSN'] || row['hsn'] || '';
+          const gstRate = row['GST Rate (%)'] || row['gst rate (%)'] || row['GST Rate'] || row['gst rate'] || row['GST'] || row['gst'] || '18';
+          const notes = row['Notes'] || row['notes'] || row['Note'] || row['note'] || '';
+
           // Validate required fields
-          if (!row['Invoice Number'] || !row['Customer Name'] || !row['Product Name']) {
-            throw new Error(`Row ${index + 2}: Invoice Number, Customer Name, and Product Name are required`);
+          if (!invoiceNumber || !customerName || !productName) {
+            throw new Error(`Row ${index + 2}: Invoice Number, Customer Name, and Product Name are required. Found: Invoice="${invoiceNumber}", Customer="${customerName}", Product="${productName}"`);
           }
 
-          const invoiceNumber = row['Invoice Number'];
-          
+          // Parse numeric values with better error handling
+          const parsedQuantity = parseInt(quantity.toString().replace(/[^0-9]/g, '')) || 1;
+          const parsedPrice = parseFloat(unitPrice.toString().replace(/[^0-9.-]/g, '')) || 0;
+          const parsedGstRate = parseInt(gstRate.toString().replace(/[^0-9]/g, '')) || 18;
+
+          if (isNaN(parsedQuantity) || isNaN(parsedPrice)) {
+            throw new Error(`Row ${index + 2}: Invalid numeric values. Quantity="${quantity}" (parsed: ${parsedQuantity}), Price="${unitPrice}" (parsed: ${parsedPrice})`);
+          }
+
           // Create or update invoice
           if (!invoicesMap[invoiceNumber]) {
             invoicesMap[invoiceNumber] = {
               id: `INV-${Date.now()}-${Math.random()}`,
-              invoiceNumber: invoiceNumber,
+              invoiceNumber: invoiceNumber.trim(),
               customerId: `CUST-${Date.now()}-${Math.random()}`, 
-              customerName: row['Customer Name'],
-              customerEmail: row['Customer Email'] || '',
-              customerPhone: row['Customer Phone'] || '',
-              customerAddress: row['Customer Address'] || '',
-              customerGSTIN: row['Customer GSTIN'] || '',
-              date: row['Invoice Date'] || new Date().toISOString().split('T')[0],
-              dueDate: row['Due Date'] || new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
+              customerName: customerName.trim(),
+              customerEmail: customerEmail.trim() || '',
+              customerPhone: customerPhone.trim() || '',
+              customerAddress: customerAddress.trim() || '',
+              customerGSTIN: customerGSTIN.trim() || '',
+              date: invoiceDate.trim() || new Date().toISOString().split('T')[0],
+              dueDate: dueDate.trim() || new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
               items: [],
-              notes: row['Notes'] || '',
+              notes: notes.trim() || '',
               status: 'draft'
             };
           }
 
           // Add item to invoice
           const item = {
-            productId: row['SKU'] || `PROD-${Date.now()}-${index}`,
-            name: row['Product Name'],
-            sku: row['SKU'] || `SKU-${Date.now()}-${index}`,
-            category: row['Category'] || 'General',
-            quantity: parseInt(row['Quantity']) || 1,
-            price: parseFloat(row['Unit Price']) || 0,
-            unit: row['Unit'] || 'piece',
-            hsn: row['HSN Code'] || '',
-            gstRate: parseInt(row['GST Rate (%)']) || 18,
-            amount: (parseInt(row['Quantity']) || 1) * (parseFloat(row['Unit Price']) || 0)
+            productId: sku.trim() || `PROD-${Date.now()}-${index}`,
+            name: productName.trim(),
+            sku: sku.trim() || `SKU-${Date.now()}-${index}`,
+            category: category.trim() || 'General',
+            quantity: parsedQuantity,
+            price: parsedPrice,
+            unit: unit.trim() || 'piece',
+            hsn: hsn.trim() || '',
+            gstRate: parsedGstRate,
+            amount: parsedQuantity * parsedPrice
           };
 
           invoicesMap[invoiceNumber].items.push(item);
@@ -294,8 +325,12 @@ export const processInvoiceExcel = (file) => {
 
         const products = Object.values(productsMap);
 
+        console.log('Processed Invoices:', invoices); // Debug log
+        console.log('Processed Products from Invoice:', products); // Debug log
+        
         resolve({ invoices, products });
       } catch (error) {
+        console.error('Invoice Excel processing error:', error);
         reject(error);
       }
     };
