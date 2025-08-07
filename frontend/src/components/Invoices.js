@@ -41,6 +41,11 @@ import {
 } from './ui/dialog';
 import { mockInvoices, mockCustomers } from '../utils/mockData';
 import CreateInvoiceForm from './forms/CreateInvoiceForm';
+import { 
+  downloadInvoiceTemplate, 
+  processInvoiceExcel,
+  exportToExcel 
+} from '../utils/excelUtils';
 
 const Invoices = () => {
   const [invoices] = useState(mockInvoices);
