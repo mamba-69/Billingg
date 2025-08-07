@@ -533,6 +533,146 @@ const Inventory = () => {
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* Edit Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Edit Product</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleUpdateProduct} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-name">Product Name *</Label>
+                    <Input
+                      id="edit-name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Enter product name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-sku">SKU</Label>
+                    <Input
+                      id="edit-sku"
+                      value={formData.sku}
+                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                      placeholder="Enter SKU"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-category">Category</Label>
+                    <Input
+                      id="edit-category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      placeholder="Enter category"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-price">Price *</Label>
+                    <Input
+                      id="edit-price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="Enter price"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-stock">Stock Quantity *</Label>
+                    <Input
+                      id="edit-stock"
+                      type="number"
+                      min="0"
+                      value={formData.stock}
+                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                      placeholder="Enter stock quantity"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-minStock">Minimum Stock</Label>
+                    <Input
+                      id="edit-minStock"
+                      type="number"
+                      min="0"
+                      value={formData.minStock}
+                      onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
+                      placeholder="Enter minimum stock level"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-unit">Unit</Label>
+                    <Select value={formData.unit} onValueChange={(value) => setFormData({ ...formData, unit: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="piece">Piece</SelectItem>
+                        <SelectItem value="kg">Kilogram</SelectItem>
+                        <SelectItem value="liter">Liter</SelectItem>
+                        <SelectItem value="meter">Meter</SelectItem>
+                        <SelectItem value="box">Box</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-gstRate">GST Rate (%)</Label>
+                    <Select value={formData.gstRate} onValueChange={(value) => setFormData({ ...formData, gstRate: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0%</SelectItem>
+                        <SelectItem value="5">5%</SelectItem>
+                        <SelectItem value="12">12%</SelectItem>
+                        <SelectItem value="18">18%</SelectItem>
+                        <SelectItem value="28">28%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-hsn">HSN Code</Label>
+                    <Input
+                      id="edit-hsn"
+                      value={formData.hsn}
+                      onChange={(e) => setFormData({ ...formData, hsn: e.target.value })}
+                      placeholder="Enter HSN code"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="edit-supplier">Supplier</Label>
+                    <Input
+                      id="edit-supplier"
+                      value={formData.supplier}
+                      onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                      placeholder="Enter supplier name"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-4 justify-end">
+                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Update Product
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
