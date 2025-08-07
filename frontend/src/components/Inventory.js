@@ -50,6 +50,7 @@ const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
