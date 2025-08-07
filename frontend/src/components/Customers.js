@@ -288,9 +288,79 @@ const Customers = () => {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Customer</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleUpdateCustomer} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Name *</Label>
+                <Input
+                  id="edit-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter customer name"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-email">Email *</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="Enter email address"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-phone">Phone *</Label>
+                <Input
+                  id="edit-phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="Enter phone number"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-gstin">GSTIN</Label>
+                <Input
+                  id="edit-gstin"
+                  value={formData.gstin}
+                  onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
+                  placeholder="Enter GST number"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-address">Address</Label>
+                <Textarea
+                  id="edit-address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="Enter full address"
+                />
+              </div>
+              
+              <div className="flex gap-4 justify-end">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Update Customer
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards */}}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
