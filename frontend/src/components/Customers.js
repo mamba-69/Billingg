@@ -37,9 +37,12 @@ import { useToast } from '../hooks/use-toast';
 import apiService from '../services/api';
 
 const Customers = () => {
-  const [customers, setCustomers] = useState(mockCustomers);
+  const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -50,7 +53,29 @@ const Customers = () => {
   
   const { toast } = useToast();
 
-  const handleCreateCustomer = (e) => {
+  // Load customers on component mount
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  const loadCustomers = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getCustomers();
+      setCustomers(data);
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load customers from server",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCustomer = async (e) => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.phone) {
@@ -62,23 +87,90 @@ const Customers = () => {
       return;
     }
     
-    const newCustomer = {
-      id: Date.now().toString(),
-      ...formData,
-      outstanding: 0,
-      totalBusiness: 0,
-      lastInvoice: null,
-      status: 'active'
-    };
-    
-    setCustomers([...customers, newCustomer]);
-    setFormData({ name: '', email: '', phone: '', address: '', gstin: '' });
-    setIsCreateDialogOpen(false);
-    
-    toast({
-      title: "Success",
-      description: "Customer created successfully",
+    try {
+      const newCustomer = await apiService.createCustomer(formData);
+      setCustomers([...customers, newCustomer]);
+      setFormData({ name: '', email: '', phone: '', address: '', gstin: '' });
+      setIsCreateDialogOpen(false);
+      
+      toast({
+        title: "Success",
+        description: "Customer created successfully",
+      });
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create customer",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditCustomer = (customer) => {
+    setEditingCustomer(customer);
+    setFormData({
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address,
+      gstin: customer.gstin
     });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateCustomer = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.phone) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const updatedCustomer = await apiService.updateCustomer(editingCustomer.id, formData);
+      setCustomers(customers.map(c => c.id === editingCustomer.id ? updatedCustomer : c));
+      
+      setIsEditDialogOpen(false);
+      setEditingCustomer(null);
+      setFormData({ name: '', email: '', phone: '', address: '', gstin: '' });
+      
+      toast({
+        title: "Success",
+        description: "Customer updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteCustomer = async (customer) => {
+    if (window.confirm(`Are you sure you want to delete "${customer.name}"?`)) {
+      try {
+        await apiService.deleteCustomer(customer.id);
+        setCustomers(customers.filter(c => c.id !== customer.id));
+        toast({
+          title: "Success",
+          description: "Customer deleted successfully",
+        });
+      } catch (error) {
+        console.error('Error deleting customer:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete customer",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const formatCurrency = (amount) => {
