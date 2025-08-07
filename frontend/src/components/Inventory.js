@@ -285,14 +285,33 @@ const Inventory = () => {
     try {
       const importedProducts = await processInventoryExcel(file);
       
-      // Add imported products to existing products
-      setProducts([...products, ...importedProducts]);
+      // Add imported products using API
+      for (const product of importedProducts) {
+        try {
+          const newProduct = await apiService.createProduct({
+            name: product.name,
+            sku: product.sku,
+            category: product.category,
+            price: product.price,
+            stock: product.stock,
+            minStock: product.minStock,
+            unit: product.unit,
+            hsn: product.hsn,
+            gstRate: product.gstRate,
+            supplier: product.supplier
+          });
+          setProducts(prevProducts => [...prevProducts, newProduct]);
+        } catch (error) {
+          console.error(`Failed to import product ${product.name}:`, error);
+        }
+      }
       
       toast({
         title: "Success",
         description: `Successfully imported ${importedProducts.length} products`,
       });
     } catch (error) {
+      console.error('Import error:', error);
       toast({
         title: "Import Error",
         description: error.message || "Failed to import Excel file",
