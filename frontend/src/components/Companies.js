@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Building2,
@@ -26,12 +26,16 @@ import {
 } from './ui/dialog';
 import { useCompany } from '../context/CompanyContext';
 import { useToast } from '../hooks/use-toast';
+import apiService from '../services/api';
 
 const Companies = () => {
   const { companies, selectedCompany, addCompany, updateCompany, deleteCompany, switchCompany } = useCompany();
   const { toast } = useToast();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,7 +45,7 @@ const Companies = () => {
     logo: ''
   });
 
-  const handleCreateCompany = (e) => {
+  const handleCreateCompany = async (e) => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.phone) {
@@ -53,21 +57,92 @@ const Companies = () => {
       return;
     }
     
-    const newCompany = addCompany(formData);
+    try {
+      // Create via API first
+      const apiCompany = await apiService.createCompany(formData);
+      
+      // Then add to context (which will also create locally)
+      const newCompany = addCompany(formData);
+      
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        gstin: '',
+        logo: ''
+      });
+      setIsCreateDialogOpen(false);
+      
+      toast({
+        title: "Success",
+        description: `Company "${newCompany.name}" created successfully`,
+      });
+    } catch (error) {
+      console.error('Error creating company:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create company",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditCompany = (company) => {
+    setEditingCompany(company);
     setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      gstin: '',
-      logo: ''
+      name: company.name,
+      email: company.email,
+      phone: company.phone,
+      address: company.address,
+      gstin: company.gstin,
+      logo: company.logo
     });
-    setIsCreateDialogOpen(false);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateCompany = async (e) => {
+    e.preventDefault();
     
-    toast({
-      title: "Success",
-      description: `Company "${newCompany.name}" created successfully`,
-    });
+    if (!formData.name || !formData.email || !formData.phone) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Update via API first
+      await apiService.updateCompany(editingCompany.id, formData);
+      
+      // Then update in context
+      updateCompany(editingCompany.id, formData);
+      
+      setIsEditDialogOpen(false);
+      setEditingCompany(null);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        gstin: '',
+        logo: ''
+      });
+      
+      toast({
+        title: "Success",
+        description: "Company updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating company:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update company",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSwitchCompany = (company) => {
@@ -78,19 +153,34 @@ const Companies = () => {
     });
   };
 
-  const handleDeleteCompany = (company) => {
-    const success = deleteCompany(company.id);
-    if (success) {
-      toast({
-        title: "Success",
-        description: `Company "${company.name}" deleted successfully`,
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Cannot delete the last company",
-        variant: "destructive",
-      });
+  const handleDeleteCompany = async (company) => {
+    if (window.confirm(`Are you sure you want to delete "${company.name}"?`)) {
+      try {
+        // Delete via API first
+        await apiService.deleteCompany(company.id);
+        
+        // Then delete from context
+        const success = deleteCompany(company.id);
+        if (success) {
+          toast({
+            title: "Success",
+            description: `Company "${company.name}" deleted successfully`,
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Cannot delete the last company",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting company:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete company",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -187,6 +277,88 @@ const Companies = () => {
                 </Button>
                 <Button type="submit">
                   Create Company
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Company</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleUpdateCompany} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-name">Company Name *</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter company name"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-email">Email *</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="Enter email address"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-phone">Phone *</Label>
+                  <Input
+                    id="edit-phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-gstin">GSTIN</Label>
+                  <Input
+                    id="edit-gstin"
+                    value={formData.gstin}
+                    onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
+                    placeholder="Enter GST number"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <Label htmlFor="edit-address">Address</Label>
+                  <Textarea
+                    id="edit-address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="Enter full address"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <Label htmlFor="edit-logo">Logo URL</Label>
+                  <Input
+                    id="edit-logo"
+                    value={formData.logo}
+                    onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+                    placeholder="Enter logo URL (optional)"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-4 justify-end">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Update Company
                 </Button>
               </div>
             </form>
@@ -346,7 +518,7 @@ const Companies = () => {
                             Switch
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditCompany(company)}>
                           <Edit className="h-3 w-3" />
                         </Button>
                         {companies.length > 1 && (

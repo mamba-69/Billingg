@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -39,7 +39,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog';
-import { mockInvoices, mockCustomers } from '../utils/mockData';
 import CreateInvoiceForm from './forms/CreateInvoiceForm';
 import { 
   downloadInvoiceTemplate, 
@@ -47,14 +46,87 @@ import {
   exportToExcel 
 } from '../utils/excelUtils';
 import { useToast } from '../hooks/use-toast';
+import apiService from '../services/api';
 
 const Invoices = () => {
   const { toast } = useToast();
-  const [invoices, setInvoices] = useState(mockInvoices);
+  const [invoices, setInvoices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load invoices on component mount
+  useEffect(() => {
+    loadInvoices();
+  }, []);
+
+  const loadInvoices = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getInvoices();
+      setInvoices(data);
+    } catch (error) {
+      console.error('Error loading invoices:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load invoices from server",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditInvoice = (invoice) => {
+    setEditingInvoice(invoice);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateInvoice = async (updatedData) => {
+    try {
+      const updatedInvoice = await apiService.updateInvoice(editingInvoice.id, updatedData);
+      setInvoices(invoices.map(inv => inv.id === editingInvoice.id ? updatedInvoice : inv));
+      
+      setIsEditDialogOpen(false);
+      setEditingInvoice(null);
+      
+      toast({
+        title: "Success",
+        description: "Invoice updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating invoice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update invoice",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteInvoice = async (invoice) => {
+    if (window.confirm(`Are you sure you want to delete invoice "${invoice.invoiceNumber}"?`)) {
+      try {
+        await apiService.deleteInvoice(invoice.id);
+        setInvoices(invoices.filter(inv => inv.id !== invoice.id));
+        toast({
+          title: "Success",
+          description: "Invoice deleted successfully",
+        });
+      } catch (error) {
+        console.error('Error deleting invoice:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete invoice",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -136,17 +208,35 @@ const Invoices = () => {
     try {
       const { invoices: importedInvoices, products: importedProducts } = await processInvoiceExcel(file);
       
-      // Add imported invoices
-      setInvoices([...invoices, ...importedInvoices]);
-      
-      // Note: In a real app, we would also update the inventory state
-      // For now, we'll show a message about inventory being updated
+      // Add imported invoices using API
+      for (const invoice of importedInvoices) {
+        try {
+          const newInvoice = await apiService.createInvoice({
+            invoiceNumber: invoice.invoiceNumber,
+            customerId: invoice.customerId,
+            customerName: invoice.customerName,
+            customerEmail: invoice.customerEmail,
+            customerPhone: invoice.customerPhone,
+            customerAddress: invoice.customerAddress,
+            customerGSTIN: invoice.customerGSTIN,
+            date: invoice.date,
+            dueDate: invoice.dueDate,
+            items: invoice.items,
+            notes: invoice.notes,
+            status: invoice.status
+          });
+          setInvoices(prevInvoices => [...prevInvoices, newInvoice]);
+        } catch (error) {
+          console.error(`Failed to import invoice ${invoice.invoiceNumber}:`, error);
+        }
+      }
       
       toast({
         title: "Success",
         description: `Successfully imported ${importedInvoices.length} invoices and ${importedProducts.length} products added to inventory`,
       });
     } catch (error) {
+      console.error('Import error:', error);
       toast({
         title: "Import Error",
         description: error.message || "Failed to import Excel file",
@@ -206,6 +296,21 @@ const Invoices = () => {
                 <DialogTitle>Create New Invoice</DialogTitle>
               </DialogHeader>
               <CreateInvoiceForm onClose={() => setIsCreateDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Invoice</DialogTitle>
+              </DialogHeader>
+              <CreateInvoiceForm 
+                initialData={editingInvoice} 
+                onClose={() => setIsEditDialogOpen(false)}
+                onSubmit={handleUpdateInvoice}
+                isEdit={true}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -314,31 +419,53 @@ const Invoices = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredInvoices.map((invoice) => (
-                <TableRow key={invoice.id} className="hover:bg-gray-50">
-                  <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                  <TableCell>{invoice.customerName}</TableCell>
-                  <TableCell>{formatDate(invoice.date)}</TableCell>
-                  <TableCell>{formatDate(invoice.dueDate)}</TableCell>
-                  <TableCell className="font-semibold">
-                    {formatCurrency(invoice.totalAmount)}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan="7" className="text-center py-8">
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="ml-2">Loading invoices...</span>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredInvoices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan="7" className="text-center py-8 text-gray-500">
+                    No invoices found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id} className="hover:bg-gray-50">
+                    <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                    <TableCell>{invoice.customerName}</TableCell>
+                    <TableCell>{formatDate(invoice.date)}</TableCell>
+                    <TableCell>{formatDate(invoice.dueDate)}</TableCell>
+                    <TableCell className="font-semibold">
+                      {formatCurrency(invoice.totalAmount)}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditInvoice(invoice)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => handleDeleteInvoice(invoice)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
