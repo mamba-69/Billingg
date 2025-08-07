@@ -48,11 +48,14 @@ import {
 import apiService from '../services/api';
 
 const Inventory = () => {
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -68,7 +71,29 @@ const Inventory = () => {
   
   const { toast } = useToast();
 
-  const handleCreateProduct = (e) => {
+  // Load products on component mount
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error('Error loading products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products from server",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateProduct = async (e) => {
     e.preventDefault();
     
     if (!formData.name || !formData.price || !formData.stock) {
@@ -80,35 +105,138 @@ const Inventory = () => {
       return;
     }
     
-    const newProduct = {
-      id: Date.now().toString(),
-      ...formData,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
-      minStock: parseInt(formData.minStock) || 5,
-      gstRate: parseInt(formData.gstRate),
-      lastUpdated: new Date().toISOString().split('T')[0]
-    };
-    
-    setProducts([...products, newProduct]);
+    try {
+      const productData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        minStock: parseInt(formData.minStock) || 5,
+        gstRate: parseInt(formData.gstRate)
+      };
+      
+      const newProduct = await apiService.createProduct(productData);
+      setProducts([...products, newProduct]);
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        price: '',
+        stock: '',
+        minStock: '',
+        unit: 'piece',
+        hsn: '',
+        gstRate: '18',
+        supplier: ''
+      });
+      setIsCreateDialogOpen(false);
+      
+      toast({
+        title: "Success",
+        description: "Product added successfully",
+      });
+    } catch (error) {
+      console.error('Error creating product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create product",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
     setFormData({
-      name: '',
-      sku: '',
-      category: '',
-      price: '',
-      stock: '',
-      minStock: '',
-      unit: 'piece',
-      hsn: '',
-      gstRate: '18',
-      supplier: ''
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      minStock: product.minStock.toString(),
+      unit: product.unit,
+      hsn: product.hsn,
+      gstRate: product.gstRate.toString(),
+      supplier: product.supplier
     });
-    setIsCreateDialogOpen(false);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
     
-    toast({
-      title: "Success",
-      description: "Product added successfully",
-    });
+    if (!formData.name || !formData.price || !formData.stock) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const productData = {
+        name: formData.name,
+        sku: formData.sku,
+        category: formData.category,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        minStock: parseInt(formData.minStock) || 5,
+        unit: formData.unit,
+        hsn: formData.hsn,
+        gstRate: parseInt(formData.gstRate),
+        supplier: formData.supplier
+      };
+      
+      const updatedProduct = await apiService.updateProduct(editingProduct.id, productData);
+      setProducts(products.map(p => p.id === editingProduct.id ? updatedProduct : p));
+      
+      setIsEditDialogOpen(false);
+      setEditingProduct(null);
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        price: '',
+        stock: '',
+        minStock: '',
+        unit: 'piece',
+        hsn: '',
+        gstRate: '18',
+        supplier: ''
+      });
+      
+      toast({
+        title: "Success",
+        description: "Product updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteProduct = async (product) => {
+    if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
+      try {
+        await apiService.deleteProduct(product.id);
+        setProducts(products.filter(p => p.id !== product.id));
+        toast({
+          title: "Success",
+          description: "Product deleted successfully",
+        });
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete product",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleExportExcel = () => {
