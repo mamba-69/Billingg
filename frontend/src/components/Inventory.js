@@ -8,7 +8,9 @@ import {
   Trash2,
   TrendingDown,
   TrendingUp,
-  Eye
+  Eye,
+  Download,
+  Upload
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -109,24 +111,6 @@ const Inventory = () => {
     });
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getStockStatus = (product) => {
-    if (product.stock === 0) {
-      return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
-    } else if (product.stock <= product.minStock) {
-      return { label: 'Low Stock', color: 'bg-yellow-100 text-yellow-800' };
-    } else {
-      return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
-    }
-  };
-
   const handleExportExcel = () => {
     const exportData = products.map(product => ({
       'Product Name': product.name,
@@ -193,6 +177,24 @@ const Inventory = () => {
     }
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getStockStatus = (product) => {
+    if (product.stock === 0) {
+      return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
+    } else if (product.stock <= product.minStock) {
+      return { label: 'Low Stock', color: 'bg-yellow-100 text-yellow-800' };
+    } else {
+      return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+    }
+  };
+
   const categories = [...new Set(products.map(p => p.category))];
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -248,142 +250,143 @@ const Inventory = () => {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateProduct} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Product Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Enter product name"
-                  />
+              <DialogHeader>
+                <DialogTitle>Add New Product</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateProduct} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Product Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Enter product name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="sku">SKU</Label>
+                    <Input
+                      id="sku"
+                      value={formData.sku}
+                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                      placeholder="Enter SKU"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      placeholder="Enter category"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="price">Price *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="Enter price"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="stock">Stock Quantity *</Label>
+                    <Input
+                      id="stock"
+                      type="number"
+                      min="0"
+                      value={formData.stock}
+                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                      placeholder="Enter stock quantity"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="minStock">Minimum Stock</Label>
+                    <Input
+                      id="minStock"
+                      type="number"
+                      min="0"
+                      value={formData.minStock}
+                      onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
+                      placeholder="Enter minimum stock level"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="unit">Unit</Label>
+                    <Select value={formData.unit} onValueChange={(value) => setFormData({ ...formData, unit: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="piece">Piece</SelectItem>
+                        <SelectItem value="kg">Kilogram</SelectItem>
+                        <SelectItem value="liter">Liter</SelectItem>
+                        <SelectItem value="meter">Meter</SelectItem>
+                        <SelectItem value="box">Box</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="gstRate">GST Rate (%)</Label>
+                    <Select value={formData.gstRate} onValueChange={(value) => setFormData({ ...formData, gstRate: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0%</SelectItem>
+                        <SelectItem value="5">5%</SelectItem>
+                        <SelectItem value="12">12%</SelectItem>
+                        <SelectItem value="18">18%</SelectItem>
+                        <SelectItem value="28">28%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="hsn">HSN Code</Label>
+                    <Input
+                      id="hsn"
+                      value={formData.hsn}
+                      onChange={(e) => setFormData({ ...formData, hsn: e.target.value })}
+                      placeholder="Enter HSN code"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="supplier">Supplier</Label>
+                    <Input
+                      id="supplier"
+                      value={formData.supplier}
+                      onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                      placeholder="Enter supplier name"
+                    />
+                  </div>
                 </div>
                 
-                <div>
-                  <Label htmlFor="sku">SKU</Label>
-                  <Input
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    placeholder="Enter SKU"
-                  />
+                <div className="flex gap-4 justify-end">
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Add Product
+                  </Button>
                 </div>
-                
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="Enter category"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="price">Price *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="Enter price"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="stock">Stock Quantity *</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    min="0"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    placeholder="Enter stock quantity"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="minStock">Minimum Stock</Label>
-                  <Input
-                    id="minStock"
-                    type="number"
-                    min="0"
-                    value={formData.minStock}
-                    onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
-                    placeholder="Enter minimum stock level"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="unit">Unit</Label>
-                  <Select value={formData.unit} onValueChange={(value) => setFormData({ ...formData, unit: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="piece">Piece</SelectItem>
-                      <SelectItem value="kg">Kilogram</SelectItem>
-                      <SelectItem value="liter">Liter</SelectItem>
-                      <SelectItem value="meter">Meter</SelectItem>
-                      <SelectItem value="box">Box</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="gstRate">GST Rate (%)</Label>
-                  <Select value={formData.gstRate} onValueChange={(value) => setFormData({ ...formData, gstRate: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">0%</SelectItem>
-                      <SelectItem value="5">5%</SelectItem>
-                      <SelectItem value="12">12%</SelectItem>
-                      <SelectItem value="18">18%</SelectItem>
-                      <SelectItem value="28">28%</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="hsn">HSN Code</Label>
-                  <Input
-                    id="hsn"
-                    value={formData.hsn}
-                    onChange={(e) => setFormData({ ...formData, hsn: e.target.value })}
-                    placeholder="Enter HSN code"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="supplier">Supplier</Label>
-                  <Input
-                    id="supplier"
-                    value={formData.supplier}
-                    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-                    placeholder="Enter supplier name"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex gap-4 justify-end">
-                <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  Add Product
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
