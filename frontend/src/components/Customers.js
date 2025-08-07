@@ -503,7 +503,7 @@ const Customers = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteCustomer(customer)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
