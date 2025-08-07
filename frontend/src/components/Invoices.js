@@ -49,6 +49,7 @@ import {
 import { useToast } from '../hooks/use-toast';
 
 const Invoices = () => {
+  const { toast } = useToast();
   const [invoices, setInvoices] = useState(mockInvoices);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
