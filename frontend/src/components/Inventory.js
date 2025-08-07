@@ -127,6 +127,72 @@ const Inventory = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    const exportData = products.map(product => ({
+      'Product Name': product.name,
+      'SKU': product.sku,
+      'Category': product.category,
+      'Price': product.price,
+      'Stock Quantity': product.stock,
+      'Minimum Stock': product.minStock,
+      'Unit': product.unit,
+      'HSN Code': product.hsn,
+      'GST Rate (%)': product.gstRate,
+      'Supplier': product.supplier
+    }));
+
+    exportToExcel(exportData, 'Inventory_Export.xlsx', 'Inventory');
+    toast({
+      title: "Success",
+      description: "Inventory exported successfully",
+    });
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadInventoryTemplate();
+    toast({
+      title: "Template Downloaded",
+      description: "Use this template to import your inventory data",
+    });
+  };
+
+  const handleImportExcel = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      toast({
+        title: "Error",
+        description: "Please select an Excel file (.xlsx or .xls)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const importedProducts = await processInventoryExcel(file);
+      
+      // Add imported products to existing products
+      setProducts([...products, ...importedProducts]);
+      
+      toast({
+        title: "Success",
+        description: `Successfully imported ${importedProducts.length} products`,
+      });
+    } catch (error) {
+      toast({
+        title: "Import Error",
+        description: error.message || "Failed to import Excel file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
   const categories = [...new Set(products.map(p => p.category))];
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
