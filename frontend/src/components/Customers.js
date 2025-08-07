@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -33,8 +33,8 @@ import {
 } from './ui/dialog';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { mockCustomers } from '../utils/mockData';
 import { useToast } from '../hooks/use-toast';
+import apiService from '../services/api';
 
 const Customers = () => {
   const [customers, setCustomers] = useState(mockCustomers);
