@@ -9,7 +9,8 @@ import {
   Phone,
   MapPin,
   IndianRupee,
-  Calendar
+  Calendar,
+  Users
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
