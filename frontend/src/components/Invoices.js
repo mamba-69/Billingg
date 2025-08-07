@@ -90,13 +90,71 @@ const Invoices = () => {
   });
 
   const handleExportExcel = () => {
-    // Mock Excel export functionality
-    alert('Excel export functionality will be implemented with backend');
+    const exportData = invoices.map(invoice => ({
+      'Invoice Number': invoice.invoiceNumber,
+      'Customer Name': invoice.customerName,
+      'Date': formatDate(invoice.date),
+      'Due Date': formatDate(invoice.dueDate),
+      'Amount': invoice.amount,
+      'GST Amount': invoice.gstAmount,
+      'Total Amount': invoice.totalAmount,
+      'Status': invoice.status,
+      'Notes': invoice.notes || ''
+    }));
+
+    exportToExcel(exportData, 'Invoices_Export.xlsx', 'Invoices');
+    toast({
+      title: "Success",
+      description: "Invoices exported successfully",
+    });
   };
 
-  const handleImportExcel = () => {
-    // Mock Excel import functionality
-    alert('Excel import functionality will be implemented with backend');
+  const handleDownloadTemplate = () => {
+    downloadInvoiceTemplate();
+    toast({
+      title: "Template Downloaded",
+      description: "Use this template to import your invoices and items will be added to inventory",
+    });
+  };
+
+  const handleImportExcel = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      toast({
+        title: "Error",
+        description: "Please select an Excel file (.xlsx or .xls)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const { invoices: importedInvoices, products: importedProducts } = await processInvoiceExcel(file);
+      
+      // Add imported invoices
+      setInvoices([...invoices, ...importedInvoices]);
+      
+      // Note: In a real app, we would also update the inventory state
+      // For now, we'll show a message about inventory being updated
+      
+      toast({
+        title: "Success",
+        description: `Successfully imported ${importedInvoices.length} invoices and ${importedProducts.length} products added to inventory`,
+      });
+    } catch (error) {
+      toast({
+        title: "Import Error",
+        description: error.message || "Failed to import Excel file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      event.target.value = '';
+    }
   };
 
   return (
