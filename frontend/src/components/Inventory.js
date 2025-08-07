@@ -213,13 +213,40 @@ const Inventory = () => {
           <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
           <p className="text-gray-600">Manage your products and stock levels</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Product
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleDownloadTemplate} 
+            className="flex items-center gap-2"
+            disabled={isImporting}
+          >
+            <Download className="h-4 w-4" />
+            Download Template
+          </Button>
+          <div className="relative">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleImportExcel}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              disabled={isImporting}
+            />
+            <Button variant="outline" className="flex items-center gap-2" disabled={isImporting}>
+              <Upload className="h-4 w-4" />
+              {isImporting ? 'Importing...' : 'Import Excel'}
             </Button>
-          </DialogTrigger>
+          </div>
+          <Button variant="outline" onClick={handleExportExcel} className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export Excel
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add Product
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
