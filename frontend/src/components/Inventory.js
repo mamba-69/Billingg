@@ -39,6 +39,11 @@ import {
 } from './ui/select';
 import { mockProducts } from '../utils/mockData';
 import { useToast } from '../hooks/use-toast';
+import { 
+  downloadInventoryTemplate, 
+  processInventoryExcel,
+  exportToExcel 
+} from '../utils/excelUtils';
 
 const Inventory = () => {
   const [products, setProducts] = useState(mockProducts);
