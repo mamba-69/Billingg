@@ -9,7 +9,9 @@ import {
   Edit,
   Trash2,
   FileSpreadsheet,
-  Calendar
+  Calendar,
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
