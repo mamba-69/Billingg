@@ -30,27 +30,25 @@ export const INVOICE_HEADERS = [
 export const downloadInventoryTemplate = () => {
   const sampleData = [
     {
-      'Product Name': 'Wireless Bluetooth Headphones',
+      'Product Name *': 'Wireless Bluetooth Headphones',
       'SKU': 'WBH-001',
       'Category': 'Electronics',
-      'Price': 2499,
-      'Stock Quantity': 50,
-      'Minimum Stock': 10,
+      'Price *': 2499,
+      'Stock Quantity *': 50,
       'Unit': 'piece',
-      'HSN Code': '85183000',
       'GST Rate (%)': 18,
+      'HSN Code': '85183000',
       'Supplier': 'Audio Tech Supplies'
     },
     {
-      'Product Name': 'Smart LED Bulb',
+      'Product Name *': 'Smart LED Bulb',
       'SKU': 'SLB-002', 
       'Category': 'Electronics',
-      'Price': 899,
-      'Stock Quantity': 100,
-      'Minimum Stock': 20,
+      'Price *': 899,
+      'Stock Quantity *': 100,
       'Unit': 'piece',
-      'HSN Code': '85395000',
       'GST Rate (%)': 18,
+      'HSN Code': '85395000',
       'Supplier': 'Lighting Solutions'
     }
   ];
@@ -65,42 +63,26 @@ export const downloadInventoryTemplate = () => {
 export const downloadInvoiceTemplate = () => {
   const sampleData = [
     {
-      'Invoice Number': 'INV-001',
-      'Customer Name': 'Acme Corporation',
-      'Customer Email': 'billing@acme.com',
-      'Customer Phone': '+91 9876543210',
-      'Customer Address': '789 Industrial Area, Delhi 110001',
-      'Customer GSTIN': '07AAPFU0939F1ZV',
-      'Invoice Date': '2024-07-20',
-      'Due Date': '2024-08-19',
-      'Product Name': 'Wireless Bluetooth Headphones',
+      'Product Name *': 'Wireless Bluetooth Headphones',
       'SKU': 'WBH-001',
       'Category': 'Electronics',
-      'Quantity': 10,
-      'Unit Price': 2499,
+      'Price *': 2499,
+      'Stock Quantity *': 10,
       'Unit': 'piece',
-      'HSN Code': '85183000',
       'GST Rate (%)': 18,
-      'Notes': 'Payment due in 30 days'
+      'HSN Code': '85183000',
+      'Supplier': 'Audio Tech Supplies'
     },
     {
-      'Invoice Number': 'INV-001',
-      'Customer Name': 'Acme Corporation', 
-      'Customer Email': 'billing@acme.com',
-      'Customer Phone': '+91 9876543210',
-      'Customer Address': '789 Industrial Area, Delhi 110001',
-      'Customer GSTIN': '07AAPFU0939F1ZV',
-      'Invoice Date': '2024-07-20',
-      'Due Date': '2024-08-19',
-      'Product Name': 'Smart LED Bulb',
+      'Product Name *': 'Smart LED Bulb',
       'SKU': 'SLB-002',
       'Category': 'Electronics', 
-      'Quantity': 20,
-      'Unit Price': 899,
+      'Price *': 899,
+      'Stock Quantity *': 20,
       'Unit': 'piece',
-      'HSN Code': '85395000',
       'GST Rate (%)': 18,
-      'Notes': 'Payment due in 30 days'
+      'HSN Code': '85395000',
+      'Supplier': 'Lighting Solutions'
     }
   ];
 
