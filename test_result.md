@@ -166,6 +166,54 @@ backend:
         comment: "All Invoices CRUD endpoints working with automatic GST calculations and proper totals"
 
 frontend:
+  - task: "Update Excel Import Column Format"
+    implemented: true
+    working: "NA"
+    file: "utils/excelUtils.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated column headers and processing functions to use new format: Product Name*, SKU, Category, Price*, Stock Quantity*, Unit, GST Rate (%), HSN Code, Supplier. Added 'selected' property to processed items."
+
+  - task: "Create Import Confirmation Dialog Component"
+    implemented: true
+    working: "NA"
+    file: "components/ImportConfirmationDialog.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive confirmation dialog with editable table, checkboxes for selection, validation, and confirmation functionality. Includes select all/none and error handling."
+
+  - task: "Update Inventory Component for Confirmation Flow"
+    implemented: true
+    working: "NA"
+    file: "components/Inventory.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Modified Excel import to show confirmation dialog instead of direct import. Added state management and confirmation handler. Import now requires user approval."
+
+  - task: "Update Invoices Component for Confirmation Flow"
+    implemented: true
+    working: "NA"
+    file: "components/Invoices.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Modified Excel import to show confirmation dialog for products from invoice import. Users can now review and edit items before adding to inventory."
+
   - task: "Fix Excel Import GST and Field Processing"
     implemented: true
     working: "NA"
@@ -176,7 +224,7 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Improved Excel import processing with better header matching, GST parsing, HSN code handling, and error reporting. Added debug logging for troubleshooting."
+        comment: "Previously implemented - now updated for new column format with better header matching and validation."
 
   - task: "Inventory Edit Button Functionality"
     implemented: true
@@ -188,7 +236,7 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Added complete edit functionality with popup modal forms, API integration, and proper state management. Includes delete functionality."
+        comment: "Previously implemented - complete edit functionality with popup modal forms, API integration, and proper state management."
 
   - task: "API Service Integration"
     implemented: true
