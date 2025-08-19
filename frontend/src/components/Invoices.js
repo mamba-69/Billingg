@@ -48,6 +48,7 @@ import {
 import { useToast } from '../hooks/use-toast';
 import apiService from '../services/api';
 import ImportConfirmationDialog from './ImportConfirmationDialog';
+import InvoiceImportConfirmationDialog from './InvoiceImportConfirmationDialog';
 
 const Invoices = () => {
   const { toast } = useToast();
