@@ -15,6 +15,14 @@ export const INVENTORY_HEADERS = [
 
 // Excel column headers for invoice import  
 export const INVOICE_HEADERS = [
+  'Invoice Number *',
+  'Customer Name *', 
+  'Customer Email',
+  'Customer Phone',
+  'Customer Address',
+  'Customer GSTIN',
+  'Invoice Date *',
+  'Due Date',
   'Product Name *',
   'SKU',
   'Category',
@@ -23,7 +31,8 @@ export const INVOICE_HEADERS = [
   'Unit',
   'GST Rate (%)',
   'HSN Code',
-  'Supplier'
+  'Supplier',
+  'Notes'
 ];
 
 // Create sample Excel template for inventory
