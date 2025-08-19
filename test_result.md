@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "importing items are not properly working from importing from excel like gst is not properly fetched etc etc and then not properly displaying. edit button is still not functional in all pages"
+user_problem_statement: "Change format of importing invoices and inventory with specific columns - Product Name *, SKU, Category, Price *, Stock Quantity *, Unit, GST Rate (%), HSN Code, Supplier. When trying to import or export invoice or inventory it should not directly import it after uploading xlsx - it will show one more form showing same details of item from xlsx to confirm import. Users should be able to edit individual items and select/deselect specific items to import."
 
 backend:
   - task: "MongoDB API Setup and Database Seeding"
