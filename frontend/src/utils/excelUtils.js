@@ -185,122 +185,53 @@ export const processInvoiceExcel = (file) => {
         
         console.log('Raw Invoice Excel Data:', jsonData); // Debug log
         
-        // Group by invoice number
-        const invoicesMap = {};
-        const productsMap = {}; // Track products to add to inventory
-        
-        jsonData.forEach((row, index) => {
-          // More flexible header matching for invoices
-          const invoiceNumber = row['Invoice Number'] || row['invoice number'] || row['Invoice'] || row['invoice'] || '';
-          const customerName = row['Customer Name'] || row['customer name'] || row['Customer'] || row['customer'] || '';
-          const productName = row['Product Name'] || row['product name'] || row['Product'] || row['product'] || '';
-          const customerEmail = row['Customer Email'] || row['customer email'] || row['Email'] || row['email'] || '';
-          const customerPhone = row['Customer Phone'] || row['customer phone'] || row['Phone'] || row['phone'] || '';
-          const customerAddress = row['Customer Address'] || row['customer address'] || row['Address'] || row['address'] || '';
-          const customerGSTIN = row['Customer GSTIN'] || row['customer gstin'] || row['GSTIN'] || row['gstin'] || '';
-          const invoiceDate = row['Invoice Date'] || row['invoice date'] || row['Date'] || row['date'] || '';
-          const dueDate = row['Due Date'] || row['due date'] || row['DueDate'] || row['duedate'] || '';
+        // Process products for inventory (simplified format)
+        const products = jsonData.map((row, index) => {
+          // More flexible header matching with new format
+          const productName = row['Product Name *'] || row['Product Name'] || row['product name'] || row['Name'] || row['name'] || '';
+          const price = row['Price *'] || row['Price'] || row['price'] || row['Unit Price'] || row['unit price'] || '0';
+          const stock = row['Stock Quantity *'] || row['Stock Quantity'] || row['stock quantity'] || row['Stock'] || row['stock'] || '0';
           const sku = row['SKU'] || row['sku'] || row['Code'] || row['code'] || '';
           const category = row['Category'] || row['category'] || 'General';
-          const quantity = row['Quantity'] || row['quantity'] || row['Qty'] || row['qty'] || '1';
-          const unitPrice = row['Unit Price'] || row['unit price'] || row['Price'] || row['price'] || '0';
           const unit = row['Unit'] || row['unit'] || 'piece';
           const hsn = row['HSN Code'] || row['hsn code'] || row['HSN'] || row['hsn'] || '';
           const gstRate = row['GST Rate (%)'] || row['gst rate (%)'] || row['GST Rate'] || row['gst rate'] || row['GST'] || row['gst'] || '18';
-          const notes = row['Notes'] || row['notes'] || row['Note'] || row['note'] || '';
+          const supplier = row['Supplier'] || row['supplier'] || '';
 
           // Validate required fields
-          if (!invoiceNumber || !customerName || !productName) {
-            throw new Error(`Row ${index + 2}: Invoice Number, Customer Name, and Product Name are required. Found: Invoice="${invoiceNumber}", Customer="${customerName}", Product="${productName}"`);
+          if (!productName || !price || !stock) {
+            throw new Error(`Row ${index + 2}: Product Name, Price, and Stock Quantity are required. Found: Name="${productName}", Price="${price}", Stock="${stock}"`);
           }
 
           // Parse numeric values with better error handling
-          const parsedQuantity = parseInt(quantity.toString().replace(/[^0-9]/g, '')) || 1;
-          const parsedPrice = parseFloat(unitPrice.toString().replace(/[^0-9.-]/g, '')) || 0;
+          const parsedPrice = parseFloat(price.toString().replace(/[^0-9.-]/g, ''));
+          const parsedStock = parseInt(stock.toString().replace(/[^0-9]/g, ''));
           const parsedGstRate = parseInt(gstRate.toString().replace(/[^0-9]/g, '')) || 18;
 
-          if (isNaN(parsedQuantity) || isNaN(parsedPrice)) {
-            throw new Error(`Row ${index + 2}: Invalid numeric values. Quantity="${quantity}" (parsed: ${parsedQuantity}), Price="${unitPrice}" (parsed: ${parsedPrice})`);
+          if (isNaN(parsedPrice) || isNaN(parsedStock)) {
+            throw new Error(`Row ${index + 2}: Invalid numeric values. Price="${price}" (parsed: ${parsedPrice}), Stock="${stock}" (parsed: ${parsedStock})`);
           }
 
-          // Create or update invoice
-          if (!invoicesMap[invoiceNumber]) {
-            invoicesMap[invoiceNumber] = {
-              id: `INV-${Date.now()}-${Math.random()}`,
-              invoiceNumber: invoiceNumber.trim(),
-              customerId: `CUST-${Date.now()}-${Math.random()}`, 
-              customerName: customerName.trim(),
-              customerEmail: customerEmail.trim() || '',
-              customerPhone: customerPhone.trim() || '',
-              customerAddress: customerAddress.trim() || '',
-              customerGSTIN: customerGSTIN.trim() || '',
-              date: invoiceDate.trim() || new Date().toISOString().split('T')[0],
-              dueDate: dueDate.trim() || new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
-              items: [],
-              notes: notes.trim() || '',
-              status: 'draft'
-            };
-          }
-
-          // Add item to invoice
-          const item = {
-            productId: sku.trim() || `PROD-${Date.now()}-${index}`,
+          return {
+            id: Date.now() + Math.random() + index, // Generate unique ID
             name: productName.trim(),
             sku: sku.trim() || `SKU-${Date.now()}-${index}`,
             category: category.trim() || 'General',
-            quantity: parsedQuantity,
             price: parsedPrice,
+            stock: parsedStock,
+            minStock: 5, // Default minimum stock
             unit: unit.trim() || 'piece',
             hsn: hsn.trim() || '',
             gstRate: parsedGstRate,
-            amount: parsedQuantity * parsedPrice
-          };
-
-          invoicesMap[invoiceNumber].items.push(item);
-
-          // Add/update product in inventory
-          if (!productsMap[item.sku]) {
-            productsMap[item.sku] = {
-              id: item.productId,
-              name: item.name,
-              sku: item.sku,
-              category: item.category,
-              price: item.price,
-              stock: 0, // Will be updated when items are "received"
-              minStock: 5,
-              unit: item.unit,
-              hsn: item.hsn,
-              gstRate: item.gstRate,
-              supplier: 'Imported',
-              lastUpdated: new Date().toISOString().split('T')[0]
-            };
-          }
-          
-          // Add quantity to stock (assuming items are being received)
-          productsMap[item.sku].stock += item.quantity;
-        });
-
-        // Calculate totals for each invoice
-        const invoices = Object.values(invoicesMap).map(invoice => {
-          const subtotal = invoice.items.reduce((sum, item) => sum + item.amount, 0);
-          const gstAmount = invoice.items.reduce((sum, item) => {
-            return sum + (item.amount * item.gstRate / 100);
-          }, 0);
-          
-          return {
-            ...invoice,
-            amount: subtotal,
-            gstAmount: gstAmount,
-            totalAmount: subtotal + gstAmount
+            supplier: supplier.trim() || '',
+            lastUpdated: new Date().toISOString().split('T')[0],
+            selected: true // Default selected for import
           };
         });
 
-        const products = Object.values(productsMap);
-
-        console.log('Processed Invoices:', invoices); // Debug log
-        console.log('Processed Products from Invoice:', products); // Debug log
+        console.log('Processed Invoice Products:', products); // Debug log
         
-        resolve({ invoices, products });
+        resolve(products);
       } catch (error) {
         console.error('Invoice Excel processing error:', error);
         reject(error);
