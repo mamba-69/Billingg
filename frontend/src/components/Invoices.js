@@ -525,12 +525,12 @@ const Invoices = () => {
       </Card>
 
       {/* Import Confirmation Dialog */}
-      <ImportConfirmationDialog
+      <InvoiceImportConfirmationDialog
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
-        items={pendingImportItems}
+        invoicesData={pendingImportData}
         onConfirm={handleConfirmImport}
-        title="Confirm Invoice Products Import"
+        title="Confirm Invoice Import"
         isImporting={isImporting}
       />
     </div>
