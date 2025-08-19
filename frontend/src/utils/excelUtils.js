@@ -112,13 +112,12 @@ export const processInventoryExcel = (file) => {
         
         // Validate and transform data
         const products = jsonData.map((row, index) => {
-          // More flexible header matching
-          const productName = row['Product Name'] || row['product name'] || row['Name'] || row['name'] || '';
-          const price = row['Price'] || row['price'] || row['Unit Price'] || row['unit price'] || '0';
-          const stock = row['Stock Quantity'] || row['stock quantity'] || row['Stock'] || row['stock'] || '0';
+          // More flexible header matching with new format
+          const productName = row['Product Name *'] || row['Product Name'] || row['product name'] || row['Name'] || row['name'] || '';
+          const price = row['Price *'] || row['Price'] || row['price'] || row['Unit Price'] || row['unit price'] || '0';
+          const stock = row['Stock Quantity *'] || row['Stock Quantity'] || row['stock quantity'] || row['Stock'] || row['stock'] || '0';
           const sku = row['SKU'] || row['sku'] || row['Code'] || row['code'] || '';
           const category = row['Category'] || row['category'] || 'General';
-          const minStock = row['Minimum Stock'] || row['minimum stock'] || row['Min Stock'] || row['min stock'] || '5';
           const unit = row['Unit'] || row['unit'] || 'piece';
           const hsn = row['HSN Code'] || row['hsn code'] || row['HSN'] || row['hsn'] || '';
           const gstRate = row['GST Rate (%)'] || row['gst rate (%)'] || row['GST Rate'] || row['gst rate'] || row['GST'] || row['gst'] || '18';
@@ -132,7 +131,6 @@ export const processInventoryExcel = (file) => {
           // Parse numeric values with better error handling
           const parsedPrice = parseFloat(price.toString().replace(/[^0-9.-]/g, ''));
           const parsedStock = parseInt(stock.toString().replace(/[^0-9]/g, ''));
-          const parsedMinStock = parseInt(minStock.toString().replace(/[^0-9]/g, '')) || 5;
           const parsedGstRate = parseInt(gstRate.toString().replace(/[^0-9]/g, '')) || 18;
 
           if (isNaN(parsedPrice) || isNaN(parsedStock)) {
@@ -146,12 +144,13 @@ export const processInventoryExcel = (file) => {
             category: category.trim() || 'General',
             price: parsedPrice,
             stock: parsedStock,
-            minStock: parsedMinStock,
+            minStock: 5, // Default minimum stock
             unit: unit.trim() || 'piece',
             hsn: hsn.trim() || '',
             gstRate: parsedGstRate,
             supplier: supplier.trim() || '',
-            lastUpdated: new Date().toISOString().split('T')[0]
+            lastUpdated: new Date().toISOString().split('T')[0],
+            selected: true // Default selected for import
           };
         });
 
