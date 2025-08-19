@@ -209,48 +209,68 @@ const Invoices = () => {
       return;
     }
 
-    setIsImporting(true);
     try {
-      const { invoices: importedInvoices, products: importedProducts } = await processInvoiceExcel(file);
-      
-      // Add imported invoices using API
-      for (const invoice of importedInvoices) {
-        try {
-          const newInvoice = await apiService.createInvoice({
-            invoiceNumber: invoice.invoiceNumber,
-            customerId: invoice.customerId,
-            customerName: invoice.customerName,
-            customerEmail: invoice.customerEmail,
-            customerPhone: invoice.customerPhone,
-            customerAddress: invoice.customerAddress,
-            customerGSTIN: invoice.customerGSTIN,
-            date: invoice.date,
-            dueDate: invoice.dueDate,
-            items: invoice.items,
-            notes: invoice.notes,
-            status: invoice.status
-          });
-          setInvoices(prevInvoices => [...prevInvoices, newInvoice]);
-        } catch (error) {
-          console.error(`Failed to import invoice ${invoice.invoiceNumber}:`, error);
-        }
-      }
-      
-      toast({
-        title: "Success",
-        description: `Successfully imported ${importedInvoices.length} invoices and ${importedProducts.length} products added to inventory`,
-      });
+      const importedProducts = await processInvoiceExcel(file);
+      setPendingImportItems(importedProducts);
+      setShowImportDialog(true);
     } catch (error) {
       console.error('Import error:', error);
       toast({
         title: "Import Error",
-        description: error.message || "Failed to import Excel file",
+        description: error.message || "Failed to process Excel file",
+        variant: "destructive",
+      });
+    } finally {
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const handleConfirmImport = async (selectedItems) => {
+    setIsImporting(true);
+    let successCount = 0;
+    let errorCount = 0;
+    
+    try {
+      // Add imported products using API (adding to inventory from invoice)
+      for (const product of selectedItems) {
+        try {
+          const newProduct = await apiService.createProduct({
+            name: product.name,
+            sku: product.sku,
+            category: product.category,
+            price: product.price,
+            stock: product.stock,
+            minStock: product.minStock,
+            unit: product.unit,
+            hsn: product.hsn,
+            gstRate: product.gstRate,
+            supplier: product.supplier
+          });
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to import product ${product.name}:`, error);
+          errorCount++;
+        }
+      }
+      
+      toast({
+        title: "Import Complete",
+        description: `Successfully added ${successCount} products to inventory${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
+        variant: errorCount > 0 ? "destructive" : "default"
+      });
+
+      setShowImportDialog(false);
+      setPendingImportItems([]);
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "Import Error",
+        description: error.message || "Failed to import products",
         variant: "destructive",
       });
     } finally {
       setIsImporting(false);
-      // Reset file input
-      event.target.value = '';
     }
   };
 
