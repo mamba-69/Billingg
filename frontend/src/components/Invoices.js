@@ -495,6 +495,16 @@ const Invoices = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Import Confirmation Dialog */}
+      <ImportConfirmationDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        items={pendingImportItems}
+        onConfirm={handleConfirmImport}
+        title="Confirm Invoice Products Import"
+        isImporting={isImporting}
+      />
     </div>
   );
 };
