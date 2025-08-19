@@ -57,6 +57,11 @@ const Inventory = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Import confirmation dialog state
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [pendingImportItems, setPendingImportItems] = useState([]);
+  
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
