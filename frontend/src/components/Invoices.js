@@ -211,8 +211,8 @@ const Invoices = () => {
     }
 
     try {
-      const importedProducts = await processInvoiceExcel(file);
-      setPendingImportItems(importedProducts);
+      const importedData = await processInvoiceExcel(file);
+      setPendingImportData(importedData);
       setShowImportDialog(true);
     } catch (error) {
       console.error('Import error:', error);
@@ -227,14 +227,41 @@ const Invoices = () => {
     }
   };
 
-  const handleConfirmImport = async (selectedItems) => {
+  const handleConfirmImport = async (selectedData) => {
     setIsImporting(true);
-    let successCount = 0;
-    let errorCount = 0;
+    let invoiceSuccessCount = 0;
+    let productSuccessCount = 0;
+    let invoiceErrorCount = 0;
+    let productErrorCount = 0;
     
     try {
-      // Add imported products using API (adding to inventory from invoice)
-      for (const product of selectedItems) {
+      // Create invoices
+      for (const invoice of selectedData.invoices) {
+        try {
+          const newInvoice = await apiService.createInvoice({
+            invoiceNumber: invoice.invoiceNumber,
+            customerId: invoice.customerId,
+            customerName: invoice.customerName,
+            customerEmail: invoice.customerEmail,
+            customerPhone: invoice.customerPhone,
+            customerAddress: invoice.customerAddress,
+            customerGSTIN: invoice.customerGSTIN,
+            date: invoice.date,
+            dueDate: invoice.dueDate,
+            items: invoice.items,
+            notes: invoice.notes,
+            status: invoice.status
+          });
+          setInvoices(prevInvoices => [...prevInvoices, newInvoice]);
+          invoiceSuccessCount++;
+        } catch (error) {
+          console.error(`Failed to import invoice ${invoice.invoiceNumber}:`, error);
+          invoiceErrorCount++;
+        }
+      }
+
+      // Create products in inventory
+      for (const product of selectedData.products) {
         try {
           const newProduct = await apiService.createProduct({
             name: product.name,
@@ -248,26 +275,26 @@ const Invoices = () => {
             gstRate: product.gstRate,
             supplier: product.supplier
           });
-          successCount++;
+          productSuccessCount++;
         } catch (error) {
           console.error(`Failed to import product ${product.name}:`, error);
-          errorCount++;
+          productErrorCount++;
         }
       }
       
       toast({
         title: "Import Complete",
-        description: `Successfully added ${successCount} products to inventory${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
-        variant: errorCount > 0 ? "destructive" : "default"
+        description: `Successfully imported ${invoiceSuccessCount} invoices and ${productSuccessCount} products${invoiceErrorCount + productErrorCount > 0 ? `, ${invoiceErrorCount + productErrorCount} failed` : ''}`,
+        variant: invoiceErrorCount + productErrorCount > 0 ? "destructive" : "default"
       });
 
       setShowImportDialog(false);
-      setPendingImportItems([]);
+      setPendingImportData(null);
     } catch (error) {
       console.error('Import error:', error);
       toast({
         title: "Import Error",
-        description: error.message || "Failed to import products",
+        description: error.message || "Failed to import data",
         variant: "destructive",
       });
     } finally {
