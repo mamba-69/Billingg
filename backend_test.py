@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import sys
 
 # Backend URL from frontend .env
-BASE_URL = "https://7f8ef510-3197-40d9-aaeb-907f11ff0ce0.preview.emergentagent.com/api"
+BASE_URL = "https://smart-import-tool.preview.emergentagent.com/api"
 
 class InventoryAPITester:
     def __init__(self):
