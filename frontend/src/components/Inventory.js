@@ -46,6 +46,7 @@ import {
   exportToExcel 
 } from '../utils/excelUtils';
 import apiService from '../services/api';
+import ImportConfirmationDialog from './ImportConfirmationDialog';
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
