@@ -72,6 +72,14 @@ export const downloadInventoryTemplate = () => {
 export const downloadInvoiceTemplate = () => {
   const sampleData = [
     {
+      'Invoice Number *': 'INV-001',
+      'Customer Name *': 'Acme Corporation',
+      'Customer Email': 'billing@acme.com',
+      'Customer Phone': '+91 9876543210',
+      'Customer Address': '789 Industrial Area, Delhi 110001',
+      'Customer GSTIN': '07AAPFU0939F1ZV',
+      'Invoice Date *': '2024-07-20',
+      'Due Date': '2024-08-19',
       'Product Name *': 'Wireless Bluetooth Headphones',
       'SKU': 'WBH-001',
       'Category': 'Electronics',
@@ -80,9 +88,18 @@ export const downloadInvoiceTemplate = () => {
       'Unit': 'piece',
       'GST Rate (%)': 18,
       'HSN Code': '85183000',
-      'Supplier': 'Audio Tech Supplies'
+      'Supplier': 'Audio Tech Supplies',
+      'Notes': 'Payment due in 30 days'
     },
     {
+      'Invoice Number *': 'INV-001',
+      'Customer Name *': 'Acme Corporation',
+      'Customer Email': 'billing@acme.com', 
+      'Customer Phone': '+91 9876543210',
+      'Customer Address': '789 Industrial Area, Delhi 110001',
+      'Customer GSTIN': '07AAPFU0939F1ZV',
+      'Invoice Date *': '2024-07-20',
+      'Due Date': '2024-08-19',
       'Product Name *': 'Smart LED Bulb',
       'SKU': 'SLB-002',
       'Category': 'Electronics', 
@@ -91,7 +108,8 @@ export const downloadInvoiceTemplate = () => {
       'Unit': 'piece',
       'GST Rate (%)': 18,
       'HSN Code': '85395000',
-      'Supplier': 'Lighting Solutions'
+      'Supplier': 'Lighting Solutions',
+      'Notes': 'Payment due in 30 days'
     }
   ];
 
