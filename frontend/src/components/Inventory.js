@@ -287,12 +287,31 @@ const Inventory = () => {
       return;
     }
 
-    setIsImporting(true);
     try {
       const importedProducts = await processInventoryExcel(file);
-      
+      setPendingImportItems(importedProducts);
+      setShowImportDialog(true);
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "Import Error",
+        description: error.message || "Failed to process Excel file",
+        variant: "destructive",
+      });
+    } finally {
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const handleConfirmImport = async (selectedItems) => {
+    setIsImporting(true);
+    let successCount = 0;
+    let errorCount = 0;
+    
+    try {
       // Add imported products using API
-      for (const product of importedProducts) {
+      for (const product of selectedItems) {
         try {
           const newProduct = await apiService.createProduct({
             name: product.name,
@@ -307,26 +326,30 @@ const Inventory = () => {
             supplier: product.supplier
           });
           setProducts(prevProducts => [...prevProducts, newProduct]);
+          successCount++;
         } catch (error) {
           console.error(`Failed to import product ${product.name}:`, error);
+          errorCount++;
         }
       }
       
       toast({
-        title: "Success",
-        description: `Successfully imported ${importedProducts.length} products`,
+        title: "Import Complete",
+        description: `Successfully imported ${successCount} products${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
+        variant: errorCount > 0 ? "destructive" : "default"
       });
+
+      setShowImportDialog(false);
+      setPendingImportItems([]);
     } catch (error) {
       console.error('Import error:', error);
       toast({
         title: "Import Error",
-        description: error.message || "Failed to import Excel file",
+        description: error.message || "Failed to import products",
         variant: "destructive",
       });
     } finally {
       setIsImporting(false);
-      // Reset file input
-      event.target.value = '';
     }
   };
 
