@@ -47,6 +47,7 @@ import {
 } from '../utils/excelUtils';
 import { useToast } from '../hooks/use-toast';
 import apiService from '../services/api';
+import ImportConfirmationDialog from './ImportConfirmationDialog';
 
 const Invoices = () => {
   const { toast } = useToast();
