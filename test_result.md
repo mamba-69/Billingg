@@ -294,16 +294,17 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix Excel Import GST and Field Processing"
-    - "Inventory Edit Button Functionality"
-    - "API Service Integration"
+    - "Update Excel Import Column Format"
+    - "Create Import Confirmation Dialog Component"
+    - "Update Inventory Component for Confirmation Flow"
+    - "Update Invoices Component for Confirmation Flow"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Completed backend API implementation with full CRUD operations and MongoDB integration. Fixed Excel import parsing issues with better header matching and GST processing. Implemented edit functionality for Inventory component with popup forms and API integration. Ready for frontend testing of implemented features."
+    message: "Implemented complete Excel import confirmation system with new column format. Updated both inventory and invoice imports to show confirmation dialog where users can edit, select/deselect items before importing. New format uses: Product Name*, SKU, Category, Price*, Stock Quantity*, Unit, GST Rate (%), HSN Code, Supplier. Ready for testing."
 
 user_problem_statement: "Test the inventory management system backend APIs that I just implemented"
 
