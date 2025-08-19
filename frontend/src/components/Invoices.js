@@ -60,6 +60,10 @@ const Invoices = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Import confirmation dialog state
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [pendingImportItems, setPendingImportItems] = useState([]);
+
   // Load invoices on component mount
   useEffect(() => {
     loadInvoices();
