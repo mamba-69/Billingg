@@ -881,6 +881,16 @@ const Inventory = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Import Confirmation Dialog */}
+      <ImportConfirmationDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        items={pendingImportItems}
+        onConfirm={handleConfirmImport}
+        title="Confirm Inventory Import"
+        isImporting={isImporting}
+      />
     </div>
   );
 };
