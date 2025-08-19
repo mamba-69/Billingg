@@ -2,37 +2,28 @@ import * as XLSX from 'xlsx';
 
 // Excel column headers for inventory import
 export const INVENTORY_HEADERS = [
-  'Product Name',
+  'Product Name *',
   'SKU',
-  'Category', 
-  'Price',
-  'Stock Quantity',
-  'Minimum Stock',
+  'Category',
+  'Price *',
+  'Stock Quantity *',
   'Unit',
-  'HSN Code',
   'GST Rate (%)',
+  'HSN Code',
   'Supplier'
 ];
 
-// Excel column headers for invoice import
+// Excel column headers for invoice import  
 export const INVOICE_HEADERS = [
-  'Invoice Number',
-  'Customer Name',
-  'Customer Email',
-  'Customer Phone',
-  'Customer Address',
-  'Customer GSTIN',
-  'Invoice Date',
-  'Due Date',
-  'Product Name',
+  'Product Name *',
   'SKU',
   'Category',
-  'Quantity',
-  'Unit Price',
+  'Price *',
+  'Stock Quantity *',
   'Unit',
-  'HSN Code',
   'GST Rate (%)',
-  'Notes'
+  'HSN Code',
+  'Supplier'
 ];
 
 // Create sample Excel template for inventory
